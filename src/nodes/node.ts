@@ -84,7 +84,6 @@ export async function node(
     }
   });
 
-
   // TODO implement this
   // this route is used to start the consensus algorithm
   // node.get("/start", async (req, res) => {});
@@ -95,27 +94,20 @@ export async function node(
       nodeState.decided = false;
       nodeState.x = initialValue;
       nodeState.k = 1;
-      messagesR = new Map();
-      messagesP = new Map();
       for (let i = 0; i < N; i++) {
-        if (i != nodeId) {
-          await fetch(`http://localhost:${BASE_NODE_PORT + i}/message`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              k: 0,
-              x: initialValue,
-              messageType: "R",
-            }),
-          });
-        }
+        await axios.post(`http://localhost:${BASE_NODE_PORT + i}/message`, {
+          k: nodeState.k,
+          x: nodeState.x,
+          messageType: "R"
+        });
       }
-      res.status(200).send("ok");
-    } else {
-      res.status(500).send("faulty");
     }
+    else {
+      nodeState.decided = null;
+      nodeState.x = null;
+      nodeState.k = null;
+    }
+    res.status(200).send("started");
   });
 
   // TODO implement this
